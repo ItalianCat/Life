@@ -288,7 +288,7 @@ public class Life implements ActionListener {
 		limitia1.gridy = 0;
 		stillLifes.add(new Label("Block"), limitia1);
 
-		block = new JButton(new ImageIcon("images/1_block.png"));
+		block = new JButton(new ImageIcon(getClass().getResource("images/1_block.png")));
 		block.setPreferredSize(new Dimension(block.getIcon().getIconWidth(),
 				block.getIcon().getIconHeight()));
 		GridBagConstraints limitib1 = new GridBagConstraints();
@@ -301,7 +301,7 @@ public class Life implements ActionListener {
 		limitic1.gridy = 2;
 		stillLifes.add(new Label("Beehive"), limitic1);
 
-		beehive = new JButton(new ImageIcon("images/1_beehive.png"));
+		beehive = new JButton(new ImageIcon(getClass().getResource("images/1_beehive.png")));
 		beehive.setPreferredSize(new Dimension(
 				beehive.getIcon().getIconWidth(), beehive.getIcon()
 						.getIconHeight()));
@@ -315,7 +315,7 @@ public class Life implements ActionListener {
 		limitie1.gridy = 4;
 		stillLifes.add(new Label("Loaf"), limitie1);
 
-		loaf = new JButton(new ImageIcon("images/1_loaf.png"));
+		loaf = new JButton(new ImageIcon(getClass().getResource("images/1_loaf.png")));
 		loaf.setPreferredSize(new Dimension(loaf.getIcon().getIconWidth(), loaf
 				.getIcon().getIconHeight()));
 		GridBagConstraints limitif1 = new GridBagConstraints();
@@ -328,7 +328,7 @@ public class Life implements ActionListener {
 		limitig1.gridy = 6;
 		stillLifes.add(new Label("Boat"), limitig1);
 
-		boat = new JButton(new ImageIcon("images/1_boat.png"));
+		boat = new JButton(new ImageIcon(getClass().getResource("images/1_boat.png")));
 		boat.setPreferredSize(new Dimension(boat.getIcon().getIconWidth(), boat
 				.getIcon().getIconHeight()));
 		GridBagConstraints limitih1 = new GridBagConstraints();
@@ -347,7 +347,7 @@ public class Life implements ActionListener {
 		limitia.gridy = 0;
 		oscillators.add(new Label("Blinker"), limitia);
 
-		blinker = new JButton(new ImageIcon("images/2_blinker.gif"));
+		blinker = new JButton(new ImageIcon(getClass().getResource("images/2_blinker.gif")));
 		blinker.setPreferredSize(new Dimension(
 				blinker.getIcon().getIconWidth(), blinker.getIcon()
 						.getIconHeight()));
@@ -361,7 +361,7 @@ public class Life implements ActionListener {
 		limitic.gridy = 2;
 		oscillators.add(new Label("Toad"), limitic);
 
-		toad = new JButton(new ImageIcon("images/2_toad.gif"));
+		toad = new JButton(new ImageIcon(getClass().getResource("images/2_toad.gif")));
 		toad.setPreferredSize(new Dimension(toad.getIcon().getIconWidth(), toad
 				.getIcon().getIconHeight()));
 		GridBagConstraints limitid = new GridBagConstraints();
@@ -374,7 +374,7 @@ public class Life implements ActionListener {
 		limitie.gridy = 4;
 		oscillators.add(new Label("Beacon"), limitie);
 
-		beacon = new JButton(new ImageIcon("images/2_beacon.gif"));
+		beacon = new JButton(new ImageIcon(getClass().getResource("images/2_beacon.gif")));
 		beacon.setPreferredSize(new Dimension(beacon.getIcon().getIconWidth(),
 				beacon.getIcon().getIconHeight()));
 		GridBagConstraints limitif = new GridBagConstraints();
@@ -387,7 +387,7 @@ public class Life implements ActionListener {
 		limitig.gridy = 6;
 		oscillators.add(new Label("Pulsar"), limitig);
 
-		pulsar = new JButton(new ImageIcon("images/2_pulsar.gif"));
+		pulsar = new JButton(new ImageIcon(getClass().getResource("images/2_pulsar.gif")));
 		pulsar.setPreferredSize(new Dimension(pulsar.getIcon().getIconWidth(),
 				pulsar.getIcon().getIconHeight()));
 		GridBagConstraints limitih = new GridBagConstraints();
@@ -406,7 +406,7 @@ public class Life implements ActionListener {
 		limitia3.gridy = 0;
 		spaceships.add(new Label("Glider"), limitia3);
 
-		glider = new JButton(new ImageIcon("images/3_glider.gif"));
+		glider = new JButton(new ImageIcon(getClass().getResource("images/3_glider.gif")));
 		glider.setPreferredSize(new Dimension(glider.getIcon().getIconWidth(),
 				glider.getIcon().getIconHeight()));
 		GridBagConstraints limitib3 = new GridBagConstraints();
@@ -419,7 +419,7 @@ public class Life implements ActionListener {
 		limitic3.gridy = 2;
 		spaceships.add(new Label("LW Spaceship"), limitic3);
 
-		LWSS = new JButton(new ImageIcon("images/3_LWSS.gif"));
+		LWSS = new JButton(new ImageIcon(getClass().getResource("images/3_LWSS.gif")));
 		LWSS.setPreferredSize(new Dimension(LWSS.getIcon().getIconWidth(), LWSS
 				.getIcon().getIconHeight()));
 		GridBagConstraints limitid3 = new GridBagConstraints();
