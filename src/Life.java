@@ -497,7 +497,6 @@ public class Life implements ActionListener {
 			bGo.setEnabled(false);
 			bPause.setEnabled(true);
 			avviato = true;
-			// timer.setDelay(100 - slider.getValue());
 			timer.start();
 			return;
 		}
@@ -745,39 +744,39 @@ public class Life implements ActionListener {
 				setBackground(COLORI[2]);
 				bKill.setEnabled(true);
 
-			} else if (!block.isEnabled()) { // GESTIRE I FUORI GRIGLIA
+			} else if (!block.isEnabled()) { 
 				bianche(riga, colonna, 4, 4);
-				nere(riga, colonna, new int[] { 12, 13, 22, 23 });
+				nere(riga, colonna, new int[] { 11, 12, 21, 22 });
 				block.setEnabled(true);
 
 			} else if (!beehive.isEnabled()) {
 				bianche(riga, colonna, 5, 6);
-				nere(riga, colonna, new int[] { 13, 14, 22, 25, 33, 34 });
+				nere(riga, colonna, new int[] { 12, 13, 21, 24, 32, 33 });
 				beehive.setEnabled(true);
 
 			} else if (!loaf.isEnabled()) {
 				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 13, 14, 22, 25, 33, 35, 44 });
+				nere(riga, colonna, new int[] { 12, 13, 21, 24, 32, 34, 43 });
 				loaf.setEnabled(true);
 
 			} else if (!boat.isEnabled()) {
 				bianche(riga, colonna, 5, 5);
-				nere(riga, colonna, new int[] { 12, 13, 22, 24, 33 });
+				nere(riga, colonna, new int[] { 11, 12, 21, 23, 32 });
 				boat.setEnabled(true);
 
 			} else if (!blinker.isEnabled()) {
 				bianche(riga, colonna, 5, 5);
-				nere(riga, colonna, new int[] { 22, 23, 24 });
+				nere(riga, colonna, new int[] { 21, 22, 23 });
 				blinker.setEnabled(true);
 
 			} else if (!toad.isEnabled()) {
 				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 23, 24, 25, 32, 33, 34 });
+				nere(riga, colonna, new int[] { 22, 23, 24, 31, 32, 33 });
 				toad.setEnabled(true);
 
 			} else if (!beacon.isEnabled()) {
 				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 12, 13, 22, 35, 44, 45 });
+				nere(riga, colonna, new int[] { 11, 12, 21, 34, 43, 44 });
 				beacon.setEnabled(true);
 
 			} else if (!pulsar.isEnabled()) {
@@ -785,25 +784,25 @@ public class Life implements ActionListener {
 				bianche(riga, colonna + 9, 9, 8);
 				bianche(riga + 9, colonna, 8, 9);
 				bianche(riga + 9, colonna + 9, 8, 8);
-				nere(riga, colonna, new int[] { 16, 26, 36, 37, 52, 53, 54, 57,
-						58, 64, 66, 68, 76, 77 });
-				nere(riga, colonna + 9, new int[] { 13, 23, 32, 33, 51, 52, 55,
-						56, 57, 61, 63, 65, 72, 73 });
-				nere(riga + 9, colonna, new int[] { 6, 7, 14, 16, 18, 22, 23,
-						24, 27, 28, 46, 47, 56, 66 });
-				nere(riga + 9, colonna + 9, new int[] { 2, 3, 11, 13, 15, 21,
-						22, 25, 26, 27, 42, 43, 53, 63 });
+				nere(riga, colonna, new int[] { 15, 25, 35, 36, 51, 52, 53, 56,
+						57, 63, 65, 67, 75, 76 });
+				nere(riga, colonna + 9, new int[] { 12, 22, 31, 32, 50, 51, 54,
+						55, 56, 60, 62, 64, 71, 72 });
+				nere(riga + 9, colonna, new int[] { 5, 6, 13, 15, 17, 21, 22,
+						23, 26, 27, 45, 46, 55, 65 });
+				nere(riga + 9, colonna + 9, new int[] { 1, 2, 10, 12, 14, 20,
+						21, 24, 25, 26, 41, 42, 52, 62 });
 				pulsar.setEnabled(true);
 
 			} else if (!glider.isEnabled()) {
 				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 13, 24, 32, 33, 34 });
+				nere(riga, colonna, new int[] { 12, 23, 31, 32, 33 });
 				glider.setEnabled(true);
 
 			} else if (!LWSS.isEnabled()) {
 				bianche(riga, colonna, 7, 9);
-				nere(riga, colonna, new int[] { 13, 16, 27, 33, 37, 44, 45, 46,
-						47 });
+				nere(riga, colonna, new int[] { 12, 15, 26, 32, 36, 43, 44, 45,
+						46 });
 				LWSS.setEnabled(true);
 
 			} else {
