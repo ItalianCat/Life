@@ -1,3 +1,7 @@
+/**
+* @author Giuliana Mazzi
+* @version 1.0 del 13 marzo 2013
+*/
 
 import java.awt.Color;
 import java.awt.Container;
@@ -9,10 +13,7 @@ import java.awt.Insets;
 import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -29,69 +30,93 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class Life implements ActionListener {
+/**La classe Life definisce una versione del Game of Life di John Conway.
+ * Si tratta di un gioco il cui esito dipende solo dalla configurazione iniziale
+ * di una griglia di cellule, il cui stato puo' essere morto (bianco) o vivo (nero).
+ * Per ogni cellula il passaggio da uno stato a quello successivo dipende dallo
+ * stato proprio e degli otto vicini sulla base di tre regole:
+ * - una cellula morta con 3 vicini vivi, resuscita
+ * - una cellula viva con 2 o 3 vicini vivi, sopravvive
+ * - una cellula viva con meno di 2 o più di 3 vicini vivi, muore
+ * Inoltre, in questa versione, una cellula puo' essere anche nello stato "uccisa"
+ * ovvero morta definitivamente.
+ * 
+ * La griglia e' implementata come un toroide, quindi, i vicini delle cellule che si trovano
+ * sul contorno sono le cellule che si trovano al capo opposto della griglia.
+ * 
+ * Col passare delle generazioni tendono ad emergere delle figure standard.
+ * Quelle piu' comuni sono rappresentate nella finestra dei widgets e possono
+ * essere posizionate sulla griglia per definire lo stato iniziale del gioco.
+*/
+public class Life implements ActionListener{
+	
+	public static final int RIGHE = 50;
+	public static final int COLONNE = 75;
+	public Cellula[][] cellule;			//griglia di cellule
+	public boolean mouseOn = false;		//identifica la pressione del mouse
+	private Timer timer; 				// uso il timer Swing (event dispatch thread)
+	private int generazioni = 0;		
+	private boolean avviato = false;	//dice se il gioco e' in corso 
+	private int nThreads = 1;			//di default si usa un thread per il calcolo delle generazioni 
+	
+	Container pane;
+	JPanel griglia;
+	JTextArea lthreads;
+	JTextField tthreads;
+	JButton bcambia;
+	JButton bReset;
+	JButton bPause;
+	JButton bGo;
+	JButton bKill;
+	JLabel lgenerazioni;
+	JSlider slider;
+	JLabel lspeed;
 
-	static final Color[] COLORI = { Color.WHITE, Color.BLACK,
-			new Color(180, 170, 200) };
-	static final Dimension DIM_CELLA = new Dimension(10, 10); // dim cella
-	static final int RIGHE = 50;
-	static final int COLONNE = 75;
-	private Cellula[][] cellule;
-	private Timer timer; // Swing timer's task is performed in the event
-							// dispatch thread, diverso da java.util.timer
-	private int generazioni = 0;
-	private boolean avviato = false;
-	private boolean mouseOn = false;
-	int nThreads = 1;
-	int daR;
-	int aR;
-	int quotaR;
-	private Point[] confinanti = { new Point(-1, -1), new Point(0, -1),
-			new Point(1, -1), new Point(-1, 0), new Point(1, 0),
-			new Point(-1, 1), new Point(0, 1), new Point(1, 1) };
+	Container widgets;
+	JPanel stillLifes;
+	JPanel oscillators;
+	JPanel spaceships;
+	JTextArea info;
+	JButton block;
+	JButton beehive;
+	JButton loaf;
+	JButton boat;
+	JButton blinker;
+	JButton toad;
+	JButton beacon;
+	JButton pulsar;
+	JButton glider;
+	JButton LWSS;
 
-	private Container pane;
-	private JPanel griglia;
-	private JTextArea lthreads;
-	private JTextField tthreads;
-	private JButton bcambia;
-	private JButton bReset;
-	private JButton bPause;
-	private JButton bGo;
-	private JButton bKill;
-	private JLabel lgenerazioni;
-	private JSlider slider;
-	private JLabel lspeed;
-
-	private Container widgets;
-	private JPanel stillLifes;
-	private JPanel oscillators;
-	private JPanel spaceships;
-	private JTextArea info;
-	private JButton block;
-	private JButton beehive;
-	private JButton loaf;
-	private JButton boat;
-	private JButton blinker;
-	private JButton toad;
-	private JButton beacon;
-	private JButton pulsar;
-	private JButton glider;
-	private JButton LWSS;
-
-	public static void main(String[] arg) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
+	/**
+	 * Avvia il Game of Life usando invokeLater. Questo e' necessario perche' Swing non e'
+	 * thread-safe (ovvero c'e' rischio di race condition tra i thread che modificano
+	 * componenti Swing) e quindi ogni modifica su un componente Swing va fatta solo con
+	 * l'Event dispatcher Thread.
+	 * Con InvokeLater l'esecuzione del gioco viene accodata alle richieste pendenti di EDT.
+	 */
+	public static void main(String[] arg){
+		SwingUtilities.invokeLater(new Runnable(){
+			public void run(){
 				new Life();
 			}
 		});
 	}
 
-	public Life() {
+	/**
+	 * Costruisce un Game of Life
+	 */
+	public Life(){
 		creaGUI();
 	}
 
-	public void creaGUI() {
+	/**
+	 * Costruisce l'interfaccia grafica del Game of Life, creando due finestre: una
+	 * per la griglia del gioco e una per i widget di selezione. In entrambi i casi
+	 * si usa GridBagLayout come Layout manager in modo da avere la massima liberta'
+	 * nell'organizzazione degli elementi nel frame. 
+	 */
+	public void creaGUI(){
 		JFrame windowForGame = new JFrame("Game Of Life - Giuliana Mazzi");
 		pane = windowForGame.getContentPane();
 		pane.setLayout(new GridBagLayout());
@@ -115,7 +140,10 @@ public class Life implements ActionListener {
 		windowForWidgets.pack();
 	}
 
-	public void disponi() {
+	/**
+	 * Organizza gli elementi nel frame relativo alla griglia di gioco.
+	 */
+	public void disponi(){
 		lthreads = new JTextArea("Threads in uso:");
 		lthreads.setBackground(Color.LIGHT_GRAY);
 		tthreads = new JTextField(3);
@@ -145,17 +173,16 @@ public class Life implements ActionListener {
 		slider.setForeground(Color.BLACK);
 		slider.setLabelTable(slider.createStandardLabels(10));
 		slider.setPaintLabels(true);
-		int i = slider.getValue();
-		timer = new Timer((int) (1010 / (i + 1)), this);
+		timer = new Timer((int) (1010 / (slider.getValue() + 1)), this);
 		lspeed = new JLabel("1 gen/sec");
 
 		griglia = new JPanel(new GridLayout(RIGHE, COLONNE, 1, 1));
 		griglia.setBackground(Color.LIGHT_GRAY);
 
 		cellule = new Cellula[RIGHE][COLONNE];
-		for (int r = 0; r < RIGHE; r++) {
-			for (int c = 0; c < COLONNE; c++) {
-				cellule[r][c] = new Cellula(r, c);
+		for(int r = 0; r < RIGHE; r++){
+			for(int c = 0; c < COLONNE; c++){
+				cellule[r][c] = new Cellula(r, c, this);
 				griglia.add(cellule[r][c]);
 			}
 		}
@@ -255,26 +282,26 @@ public class Life implements ActionListener {
 		bPause.addActionListener(this);
 		bReset.addActionListener(this);
 		bKill.addActionListener(this);
-		slider.addChangeListener(new ChangeListener() {
+		slider.addChangeListener(new ChangeListener(){
 			public void stateChanged(ChangeEvent e) {
 				int velocita = slider.getValue();
 				timer.setDelay(1010 / (velocita + 1));
-				lspeed.setText(Math.max(1,
-						(int) (1000 / (1010f / (velocita + 1)))) + " gen/sec");
+				lspeed.setText(Math.max(1,(int)(1000 / (1010f / (velocita + 1)))) + " gen/sec");
 			}
 		});
 	}
 
-	public void disponiWidgets() {
-		info = new JTextArea(
-				"\nNOTA: seleziona un widget e poi clicca sulla cella che dovrà\n"
+	/**
+	 * Organizza gli elementi nel frame relativo ai widget selezionabili.
+	 */
+	public void disponiWidgets(){
+		info = new JTextArea("\nNOTA: seleziona un widget e poi clicca sulla cella che deve\n"
 						+ "corrispondere all'angolo in alto a sinistra della figura.\n");
 		info.setBackground(Color.LIGHT_GRAY);
 
 		stillLifes = new JPanel(new GridBagLayout());
 		stillLifes.setBackground(Color.LIGHT_GRAY);
-		TitledBorder titoloStillLifes = new TitledBorder(new LineBorder(
-				Color.BLACK, 3), "Still Lifes");
+		TitledBorder titoloStillLifes = new TitledBorder(new LineBorder(Color.BLACK, 3), "Still Lifes");
 		stillLifes.setBorder(titoloStillLifes);
 
 		GridBagConstraints limitiz = new GridBagConstraints();
@@ -289,8 +316,7 @@ public class Life implements ActionListener {
 		stillLifes.add(new Label("Block"), limitia1);
 
 		block = new JButton(new ImageIcon(getClass().getResource("images/1_block.png")));
-		block.setPreferredSize(new Dimension(block.getIcon().getIconWidth(),
-				block.getIcon().getIconHeight()));
+		block.setPreferredSize(new Dimension(block.getIcon().getIconWidth(), block.getIcon().getIconHeight()));
 		GridBagConstraints limitib1 = new GridBagConstraints();
 		limitib1.gridx = 0;
 		limitib1.gridy = 1;
@@ -302,9 +328,7 @@ public class Life implements ActionListener {
 		stillLifes.add(new Label("Beehive"), limitic1);
 
 		beehive = new JButton(new ImageIcon(getClass().getResource("images/1_beehive.png")));
-		beehive.setPreferredSize(new Dimension(
-				beehive.getIcon().getIconWidth(), beehive.getIcon()
-						.getIconHeight()));
+		beehive.setPreferredSize(new Dimension(beehive.getIcon().getIconWidth(), beehive.getIcon().getIconHeight()));
 		GridBagConstraints limitid1 = new GridBagConstraints();
 		limitid1.gridx = 0;
 		limitid1.gridy = 3;
@@ -316,8 +340,7 @@ public class Life implements ActionListener {
 		stillLifes.add(new Label("Loaf"), limitie1);
 
 		loaf = new JButton(new ImageIcon(getClass().getResource("images/1_loaf.png")));
-		loaf.setPreferredSize(new Dimension(loaf.getIcon().getIconWidth(), loaf
-				.getIcon().getIconHeight()));
+		loaf.setPreferredSize(new Dimension(loaf.getIcon().getIconWidth(), loaf.getIcon().getIconHeight()));
 		GridBagConstraints limitif1 = new GridBagConstraints();
 		limitif1.gridx = 0;
 		limitif1.gridy = 5;
@@ -329,8 +352,7 @@ public class Life implements ActionListener {
 		stillLifes.add(new Label("Boat"), limitig1);
 
 		boat = new JButton(new ImageIcon(getClass().getResource("images/1_boat.png")));
-		boat.setPreferredSize(new Dimension(boat.getIcon().getIconWidth(), boat
-				.getIcon().getIconHeight()));
+		boat.setPreferredSize(new Dimension(boat.getIcon().getIconWidth(), boat.getIcon().getIconHeight()));
 		GridBagConstraints limitih1 = new GridBagConstraints();
 		limitih1.gridx = 0;
 		limitih1.gridy = 7;
@@ -338,8 +360,7 @@ public class Life implements ActionListener {
 
 		oscillators = new JPanel(new GridBagLayout());
 		oscillators.setBackground(Color.LIGHT_GRAY);
-		TitledBorder titoloOscillators = new TitledBorder(new LineBorder(
-				Color.BLACK, 3), "Oscillators");
+		TitledBorder titoloOscillators = new TitledBorder(new LineBorder(Color.BLACK, 3), "Oscillators");
 		oscillators.setBorder(titoloOscillators);
 
 		GridBagConstraints limitia = new GridBagConstraints();
@@ -348,9 +369,7 @@ public class Life implements ActionListener {
 		oscillators.add(new Label("Blinker"), limitia);
 
 		blinker = new JButton(new ImageIcon(getClass().getResource("images/2_blinker.gif")));
-		blinker.setPreferredSize(new Dimension(
-				blinker.getIcon().getIconWidth(), blinker.getIcon()
-						.getIconHeight()));
+		blinker.setPreferredSize(new Dimension(blinker.getIcon().getIconWidth(), blinker.getIcon().getIconHeight()));
 		GridBagConstraints limitib = new GridBagConstraints();
 		limitib.gridx = 0;
 		limitib.gridy = 1;
@@ -362,8 +381,7 @@ public class Life implements ActionListener {
 		oscillators.add(new Label("Toad"), limitic);
 
 		toad = new JButton(new ImageIcon(getClass().getResource("images/2_toad.gif")));
-		toad.setPreferredSize(new Dimension(toad.getIcon().getIconWidth(), toad
-				.getIcon().getIconHeight()));
+		toad.setPreferredSize(new Dimension(toad.getIcon().getIconWidth(), toad.getIcon().getIconHeight()));
 		GridBagConstraints limitid = new GridBagConstraints();
 		limitid.gridx = 0;
 		limitid.gridy = 3;
@@ -375,8 +393,7 @@ public class Life implements ActionListener {
 		oscillators.add(new Label("Beacon"), limitie);
 
 		beacon = new JButton(new ImageIcon(getClass().getResource("images/2_beacon.gif")));
-		beacon.setPreferredSize(new Dimension(beacon.getIcon().getIconWidth(),
-				beacon.getIcon().getIconHeight()));
+		beacon.setPreferredSize(new Dimension(beacon.getIcon().getIconWidth(), beacon.getIcon().getIconHeight()));
 		GridBagConstraints limitif = new GridBagConstraints();
 		limitif.gridx = 0;
 		limitif.gridy = 5;
@@ -388,8 +405,7 @@ public class Life implements ActionListener {
 		oscillators.add(new Label("Pulsar"), limitig);
 
 		pulsar = new JButton(new ImageIcon(getClass().getResource("images/2_pulsar.gif")));
-		pulsar.setPreferredSize(new Dimension(pulsar.getIcon().getIconWidth(),
-				pulsar.getIcon().getIconHeight()));
+		pulsar.setPreferredSize(new Dimension(pulsar.getIcon().getIconWidth(), pulsar.getIcon().getIconHeight()));
 		GridBagConstraints limitih = new GridBagConstraints();
 		limitih.gridx = 0;
 		limitih.gridy = 7;
@@ -397,8 +413,7 @@ public class Life implements ActionListener {
 
 		spaceships = new JPanel(new GridBagLayout());
 		spaceships.setBackground(Color.LIGHT_GRAY);
-		TitledBorder titoloSpaceships = new TitledBorder(new LineBorder(
-				Color.BLACK, 3), "Spaceships");
+		TitledBorder titoloSpaceships = new TitledBorder(new LineBorder(Color.BLACK, 3), "Spaceships");
 		spaceships.setBorder(titoloSpaceships);
 
 		GridBagConstraints limitia3 = new GridBagConstraints();
@@ -407,8 +422,7 @@ public class Life implements ActionListener {
 		spaceships.add(new Label("Glider"), limitia3);
 
 		glider = new JButton(new ImageIcon(getClass().getResource("images/3_glider.gif")));
-		glider.setPreferredSize(new Dimension(glider.getIcon().getIconWidth(),
-				glider.getIcon().getIconHeight()));
+		glider.setPreferredSize(new Dimension(glider.getIcon().getIconWidth(), glider.getIcon().getIconHeight()));
 		GridBagConstraints limitib3 = new GridBagConstraints();
 		limitib3.gridx = 0;
 		limitib3.gridy = 1;
@@ -420,8 +434,7 @@ public class Life implements ActionListener {
 		spaceships.add(new Label("LW Spaceship"), limitic3);
 
 		LWSS = new JButton(new ImageIcon(getClass().getResource("images/3_LWSS.gif")));
-		LWSS.setPreferredSize(new Dimension(LWSS.getIcon().getIconWidth(), LWSS
-				.getIcon().getIconHeight()));
+		LWSS.setPreferredSize(new Dimension(LWSS.getIcon().getIconWidth(), LWSS.getIcon().getIconHeight()));
 		GridBagConstraints limitid3 = new GridBagConstraints();
 		limitid3.gridx = 0;
 		limitid3.gridy = 3;
@@ -458,36 +471,39 @@ public class Life implements ActionListener {
 		pulsar.addActionListener(this);
 		glider.addActionListener(this);
 		LWSS.addActionListener(this);
-
 	}
 
-	public synchronized void actionPerformed(ActionEvent e) {
+	/**
+	 * Definisce il comportamento del programma a seconda dell'interazione con l'utente.
+	 */
+	public synchronized void actionPerformed(ActionEvent e){
+		int daR;
+		int aR;
+		int quotaR;
+		
 		Object evento = e.getSource();
 
-		if (evento == tthreads) {
+		if(evento == tthreads){
 			tthreads.setEditable(false);
 			nThreads = Integer.parseInt(tthreads.getText());
 			bcambia.setText("Cambia");
 		}
 
-		if (evento == bcambia) {
-			if (tthreads.isEditable()) {
+		if(evento == bcambia){
+			if(tthreads.isEditable()){
 				tthreads.setEditable(false);
 				nThreads = Integer.parseInt(tthreads.getText());
 				bcambia.setText("Cambia");
-			} else {
+			}else{
 				tthreads.setEditable(true);
 				bcambia.setText("Applica");
 			}
 			return;
 		}
 
-		if (evento == bGo) {
-			if (!(nThreads >= 1)) {
-				JOptionPane
-						.showMessageDialog(
-								null,
-								"Inserisci almeno 1 come numero di "
+		if(evento == bGo){
+			if(!(nThreads >= 1)){
+				JOptionPane.showMessageDialog(null,"Inserisci almeno 1 come numero di "
 										+ "thread da usare per il passaggio tra generazioni.");
 				tthreads.setBackground(Color.WHITE);
 				tthreads.setEditable(true);
@@ -501,7 +517,7 @@ public class Life implements ActionListener {
 			return;
 		}
 
-		if (evento == bPause) {
+		if(evento == bPause){
 			bPause.setEnabled(false);
 			bGo.setEnabled(true);
 			avviato = false;
@@ -509,7 +525,7 @@ public class Life implements ActionListener {
 			return;
 		}
 
-		if (evento == bReset) {
+		if(evento == bReset){
 			bPause.setEnabled(false);
 			bGo.setEnabled(true);
 			bKill.setEnabled(true);
@@ -518,10 +534,11 @@ public class Life implements ActionListener {
 			nThreads = 1;
 			avviato = false;
 			resetWidgets();
+			slider.setValue(1);
 			timer.stop();
-			for (int r = 0; r < RIGHE; r++) {
-				for (int c = 0; c < COLONNE; c++) {
-					cellule[r][c].clear();
+			for(int r = 0; r < RIGHE; r++){
+				for(int c = 0; c < COLONNE; c++){
+					cellule[r][c].pulisci();
 				}
 			}
 			generazioni = 0;
@@ -529,87 +546,85 @@ public class Life implements ActionListener {
 			return;
 		}
 
-		if (evento == bKill) {
+		if(evento == bKill){
 			resetWidgets();
 			bKill.setEnabled(false);
 			return;
 		}
 
-		if (evento == block) {
+		if(evento == block){
 			resetWidgets();
 			block.setEnabled(false);
 			return;
 		}
 
-		if (evento == beehive) {
+		if(evento == beehive){
 			resetWidgets();
 			beehive.setEnabled(false);
 			return;
 		}
 
-		if (evento == loaf) {
+		if(evento == loaf){
 			resetWidgets();
 			loaf.setEnabled(false);
 			return;
 		}
 
-		if (evento == boat) {
+		if(evento == boat){
 			resetWidgets();
 			boat.setEnabled(false);
 			return;
 		}
 
-		if (evento == blinker) {
+		if(evento == blinker){
 			resetWidgets();
 			blinker.setEnabled(false);
 			return;
 		}
 
-		if (evento == toad) {
+		if(evento == toad){
 			resetWidgets();
 			toad.setEnabled(false);
 			return;
 		}
 
-		if (evento == beacon) {
+		if(evento == beacon){
 			resetWidgets();
 			beacon.setEnabled(false);
 			return;
 		}
 
-		if (evento == pulsar) {
+		if(evento == pulsar){
 			resetWidgets();
 			pulsar.setEnabled(false);
 			return;
 		}
 
-		if (evento == glider) {
+		if(evento == glider){
 			resetWidgets();
 			glider.setEnabled(false);
 			return;
 		}
 
-		if (evento == LWSS) {
+		if(evento == LWSS){
 			resetWidgets();
 			LWSS.setEnabled(false);
 			return;
 		}
 
-		if (!avviato)
+		if(!avviato)
 			return;
 
 		++generazioni;
 		lgenerazioni.setText("Generazioni: " + generazioni);
 
-		quotaR = (int) Math.ceil(RIGHE / nThreads);
+		quotaR = (int)Math.ceil(RIGHE / nThreads);
 
 		daR = 0;
 		aR = quotaR;
 		Slave[] threadsCheck = new Slave[nThreads];
-		for (int pos = 0; pos < nThreads && daR < RIGHE; pos++) { // basta
-																	// pos<nThreads?
-			(threadsCheck[pos] = new Slave(daR, Math.min(aR, RIGHE), true))
-					.start();// checkStato
+		for(int pos = 0; pos < nThreads && daR < RIGHE; pos++){
+			(threadsCheck[pos] = new Slave(daR, Math.min(aR, RIGHE), true)).start();
 			daR = aR;
 			aR += quotaR;
 		}
@@ -618,10 +633,8 @@ public class Life implements ActionListener {
 		daR = 0;
 		aR = quotaR;
 		Slave[] threadsAggiorna = new Slave[nThreads];
-		for (int pos = 0; pos < nThreads && daR < RIGHE; pos++) { // basta
-																	// pos<nThreads?
-			(threadsAggiorna[pos] = new Slave(daR, Math.min(aR, RIGHE), false))
-					.start();// aggiornaStato
+		for(int pos = 0; pos < nThreads && daR < RIGHE; pos++){
+			(threadsAggiorna[pos] = new Slave(daR, Math.min(aR, RIGHE), false)).start();
 			daR = aR;
 			aR += quotaR;
 		}
@@ -629,7 +642,10 @@ public class Life implements ActionListener {
 
 	}
 
-	public void resetWidgets() {
+	/**
+	 * Riporta tutti i widget di selezione allo stato di "non selezionato".
+	 */
+	private void resetWidgets(){
 		block.setEnabled(true);
 		beehive.setEnabled(true);
 		loaf.setEnabled(true);
@@ -642,37 +658,56 @@ public class Life implements ActionListener {
 		LWSS.setEnabled(true);
 	}
 
-	public void waitThreads(Slave[] slaves) {
-		for (Slave slave : slaves)
-			try {
+	/**
+	 * Aspetta che tutti i thread creati abbiano terminato l'esecuzione.
+	 * @param slaves sono i thread che sono stati creati per il passaggio di una generazione
+	 */
+	private void waitThreads(Slave[] slaves){
+		for(Slave slave : slaves)
+			try{
 				slave.join();
-			} catch (InterruptedException e) {
+			}catch (InterruptedException e){
 			}
 	}
 
-	public class Slave extends Thread {
+	/**
+	 * Definisce il comportamento dei thread creati per effettuare le elaborazioni richieste
+	 * dal passaggio di una generazione. Il lavoro e' diviso in base alle righe: ad ogni thread
+	 * e' affidata l'elaborazione della nuova generazione per un certo gruppo di righe. 
+	 */
+	private class Slave extends Thread{
 
 		private final int daR;
 		private final int aR;
-		private final boolean op; // true check, false update
+		private final boolean op;
 
-		private Slave(int daR, int aR, boolean op) {
+		/**
+		 * 
+		 * @param daR e' la riga dalla quale il thread e' responsabile
+		 * @param aR e' la riga dalla quale il thread non e' piu' responsabile
+		 * @param op e' l'operazione da svolgere: true corrisponde a checkStato(),
+		 * false a aggiornaStato()
+		 */
+		private Slave(int daR, int aR, boolean op){
 			this.daR = daR;
 			this.aR = aR;
 			this.op = op;
 		}
 
+		/**
+		 * Definisce nel dettaglio cosa deve fare il thread.
+		 */
 		@Override
-		public void run() {
-			if (op) {
-				for (int r = daR; r < aR; r++) {
-					for (int c = 0; c < COLONNE; c++) {
+		public void run(){
+			if(op){
+				for(int r = daR; r < aR; r++){
+					for(int c = 0; c < COLONNE; c++){
 						cellule[r][c].checkStato();
 					}
 				}
-			} else {
-				for (int r = daR; r < aR; r++) {
-					for (int c = 0; c < COLONNE; c++) {
+			}else{
+				for(int r = daR; r < aR; r++){
+					for(int c = 0; c < COLONNE; c++){
 						cellule[r][c].aggiornaStato();
 					}
 				}
@@ -680,193 +715,6 @@ public class Life implements ActionListener {
 		}
 	}
 
-	public class Cellula extends JLabel implements MouseListener {
-		int riga;
-		int colonna;
-		private int statoAttuale; // 0 morta, 1 viva, 2 uccisa
-		private int statoFuturo;
 
-		Cellula(int riga, int colonna) {
-			this.riga = riga;
-			this.colonna = colonna;
-			statoAttuale = 0;
-			statoFuturo = 0;
-			setOpaque(true);
-			setBackground(COLORI[0]);
-			addMouseListener(this);
-			this.setPreferredSize(DIM_CELLA);
-		}
-
-		void checkStato() {
-			int nViciniVivi = 0;
-			for (int i = 0; i < 8; i++) {
-				// sommo RIGHE (e COLONNE) per gestire i -1
-				int statoVicino = cellule[(riga + confinanti[i].x + RIGHE)
-						% RIGHE][(colonna + confinanti[i].y + COLONNE)
-						% COLONNE].statoAttuale;
-				if (statoVicino == 2)
-					continue;
-				nViciniVivi += statoVicino;
-			}
-			if (statoAttuale == 1) {
-				if (nViciniVivi < 2)
-					statoFuturo = 0;
-				if (nViciniVivi > 3)
-					statoFuturo = 0;
-			} else if (statoAttuale == 0 && nViciniVivi == 3)
-				statoFuturo = 1;
-		}
-
-		void aggiornaStato() {
-			if (statoAttuale != statoFuturo) {
-				statoAttuale = statoFuturo;
-				setBackground(COLORI[statoAttuale]);
-			}
-		}
-
-		void clear() {
-			if (statoAttuale != 0 || statoFuturo != 0) {
-				statoAttuale = 0;
-				statoFuturo = 0;
-				setBackground(COLORI[statoAttuale]);
-			}
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent arg0) { // premuto e rilasciato
-		}
-
-		@Override
-		public void mousePressed(MouseEvent arg0) { // premuto
-			if (!bKill.isEnabled()) {
-				statoAttuale = 2;
-				statoFuturo = 2;
-				setBackground(COLORI[2]);
-				bKill.setEnabled(true);
-
-			} else if (!block.isEnabled()) { 
-				bianche(riga, colonna, 4, 4);
-				nere(riga, colonna, new int[] { 11, 12, 21, 22 });
-				block.setEnabled(true);
-
-			} else if (!beehive.isEnabled()) {
-				bianche(riga, colonna, 5, 6);
-				nere(riga, colonna, new int[] { 12, 13, 21, 24, 32, 33 });
-				beehive.setEnabled(true);
-
-			} else if (!loaf.isEnabled()) {
-				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 12, 13, 21, 24, 32, 34, 43 });
-				loaf.setEnabled(true);
-
-			} else if (!boat.isEnabled()) {
-				bianche(riga, colonna, 5, 5);
-				nere(riga, colonna, new int[] { 11, 12, 21, 23, 32 });
-				boat.setEnabled(true);
-
-			} else if (!blinker.isEnabled()) {
-				bianche(riga, colonna, 5, 5);
-				nere(riga, colonna, new int[] { 21, 22, 23 });
-				blinker.setEnabled(true);
-
-			} else if (!toad.isEnabled()) {
-				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 22, 23, 24, 31, 32, 33 });
-				toad.setEnabled(true);
-
-			} else if (!beacon.isEnabled()) {
-				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 11, 12, 21, 34, 43, 44 });
-				beacon.setEnabled(true);
-
-			} else if (!pulsar.isEnabled()) {
-				bianche(riga, colonna, 9, 9);
-				bianche(riga, colonna + 9, 9, 8);
-				bianche(riga + 9, colonna, 8, 9);
-				bianche(riga + 9, colonna + 9, 8, 8);
-				nere(riga, colonna, new int[] { 15, 25, 35, 36, 51, 52, 53, 56,
-						57, 63, 65, 67, 75, 76 });
-				nere(riga, colonna + 9, new int[] { 12, 22, 31, 32, 50, 51, 54,
-						55, 56, 60, 62, 64, 71, 72 });
-				nere(riga + 9, colonna, new int[] { 5, 6, 13, 15, 17, 21, 22,
-						23, 26, 27, 45, 46, 55, 65 });
-				nere(riga + 9, colonna + 9, new int[] { 1, 2, 10, 12, 14, 20,
-						21, 24, 25, 26, 41, 42, 52, 62 });
-				pulsar.setEnabled(true);
-
-			} else if (!glider.isEnabled()) {
-				bianche(riga, colonna, 6, 6);
-				nere(riga, colonna, new int[] { 12, 23, 31, 32, 33 });
-				glider.setEnabled(true);
-
-			} else if (!LWSS.isEnabled()) {
-				bianche(riga, colonna, 7, 9);
-				nere(riga, colonna, new int[] { 12, 15, 26, 32, 36, 43, 44, 45,
-						46 });
-				LWSS.setEnabled(true);
-
-			} else {
-				mouseOn = true;
-				if (statoAttuale != 2) {
-					statoAttuale = 1;
-					statoFuturo = 1;
-					setBackground(COLORI[1]);
-				}
-			}
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent arg0) {
-			mouseOn = false;
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent arg0) {
-			setBorder(BorderFactory.createLineBorder(Color.BLUE));
-			if (mouseOn) {
-				statoAttuale = 1;
-				statoFuturo = 1;
-				if (statoAttuale != 2)
-					setBackground(COLORI[1]);
-			}
-		}
-
-		@Override
-		public void mouseExited(MouseEvent arg0) {
-			setBorder(BorderFactory.createEmptyBorder());
-		}
-	}
-
-	public void bianche(int riga, int colonna, int altezza, int larghezza) {
-		for (int r = riga; r < riga + altezza; r++)
-			for (int c = colonna; c < colonna + larghezza; c++) {
-				cellule[r % RIGHE][c % COLONNE].statoAttuale = 0;
-				cellule[r % RIGHE][c % COLONNE].statoFuturo = 0;
-				cellule[r % RIGHE][c % COLONNE].setBackground(COLORI[0]);
-			}
-	}
-
-	public void nere(int riga, int colonna, int[] posizioni) {
-		int ri;
-		int co;
-		for (int numero : posizioni) {
-			ri = numero / 10;
-			co = numero % 10;
-			cellule[(riga + ri) % RIGHE][(colonna + co) % COLONNE].statoAttuale = 1;
-			cellule[(riga + ri) % RIGHE][(colonna + co) % COLONNE].statoFuturo = 1;
-			cellule[(riga + ri) % RIGHE][(colonna + co) % COLONNE]
-					.setBackground(COLORI[1]);
-		}
-	}
-
-	public class Point {
-		int x; // riga
-		int y; // colonna
-
-		Point(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
 }
 
