@@ -1,8 +1,7 @@
 Progetto di Programmazione II: Game of Life
 creato da Giuliana Mazzi
 
-
-Per avviare, dalla cartella bin, digitare il comando:
-$java Life
-
-Altrimenti compilare i file nella cartella src e poi eseguirli.
+Contenuti delle cartelle:
+- bin: file compilati
+- doc: documentazione in Javadoc
+- src: file sorgenti (Life.java contenente il main e Cellula.java)

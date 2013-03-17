@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 13 marzo 2013
+* @version 1.0 del 17 marzo 2013
 */
 
 import java.awt.Color;

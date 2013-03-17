@@ -1,6 +1,6 @@
 /**
 * @author Giuliana Mazzi
-* @version 1.0 del 13 marzo 2013
+* @version 1.0 del 17 marzo 2013
 */
 
 import java.awt.Color;
@@ -37,7 +37,7 @@ import javax.swing.event.ChangeListener;
  * stato proprio e degli otto vicini sulla base di tre regole:
  * - una cellula morta con 3 vicini vivi, resuscita
  * - una cellula viva con 2 o 3 vicini vivi, sopravvive
- * - una cellula viva con meno di 2 o più di 3 vicini vivi, muore
+ * - una cellula viva con meno di 2 o piu' di 3 vicini vivi, muore
  * Inoltre, in questa versione, una cellula puo' essere anche nello stato "uccisa"
  * ovvero morta definitivamente.
  * 
@@ -618,7 +618,7 @@ public class Life implements ActionListener{
 		++generazioni;
 		lgenerazioni.setText("Generazioni: " + generazioni);
 
-		quotaR = (int)Math.ceil(RIGHE / nThreads);
+		quotaR = (int)Math.ceil((double)RIGHE / nThreads);
 
 		daR = 0;
 		aR = quotaR;
