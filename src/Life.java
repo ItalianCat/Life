@@ -485,14 +485,33 @@ public class Life implements ActionListener{
 
 		if(evento == tthreads){
 			tthreads.setEditable(false);
-			nThreads = Integer.parseInt(tthreads.getText());
+			try{
+				nThreads = Integer.parseInt(tthreads.getText());
+				if(!(nThreads >= 1)){
+					noThread();
+					return;
+				}
+			}catch(NumberFormatException g){
+				noThread();
+				return;
+			}
 			bcambia.setText("Cambia");
+			return;
 		}
 
 		if(evento == bcambia){
 			if(tthreads.isEditable()){
 				tthreads.setEditable(false);
-				nThreads = Integer.parseInt(tthreads.getText());
+				try{
+					nThreads = Integer.parseInt(tthreads.getText());
+					if(!(nThreads >= 1)){
+						noThread();
+						return;
+					}
+				}catch(NumberFormatException g){
+					noThread();
+					return;
+				}
 				bcambia.setText("Cambia");
 			}else{
 				tthreads.setEditable(true);
@@ -502,14 +521,6 @@ public class Life implements ActionListener{
 		}
 
 		if(evento == bGo){
-			if(!(nThreads >= 1)){
-				JOptionPane.showMessageDialog(null,"Inserisci almeno 1 come numero di "
-										+ "thread da usare per il passaggio tra generazioni.");
-				tthreads.setBackground(Color.WHITE);
-				tthreads.setEditable(true);
-				tthreads.setText(null);
-				return;
-			}
 			bGo.setEnabled(false);
 			bPause.setEnabled(true);
 			avviato = true;
@@ -618,13 +629,15 @@ public class Life implements ActionListener{
 		++generazioni;
 		lgenerazioni.setText("Generazioni: " + generazioni);
 
-		quotaR = (int)Math.ceil((double)RIGHE / nThreads);
+		quotaR = (int)Math.floor((double)RIGHE / nThreads);
 
 		daR = 0;
 		aR = quotaR;
 		Slave[] threadsCheck = new Slave[nThreads];
-		for(int pos = 0; pos < nThreads && daR < RIGHE; pos++){
-			(threadsCheck[pos] = new Slave(daR, Math.min(aR, RIGHE), true)).start();
+		for(int pos = 0; pos < nThreads; pos++){
+			if (pos == nThreads-1)
+				aR = RIGHE;
+			(threadsCheck[pos] = new Slave(daR, aR, true)).start();
 			daR = aR;
 			aR += quotaR;
 		}
@@ -633,8 +646,10 @@ public class Life implements ActionListener{
 		daR = 0;
 		aR = quotaR;
 		Slave[] threadsAggiorna = new Slave[nThreads];
-		for(int pos = 0; pos < nThreads && daR < RIGHE; pos++){
-			(threadsAggiorna[pos] = new Slave(daR, Math.min(aR, RIGHE), false)).start();
+		for(int pos = 0; pos < nThreads; pos++){
+			if (pos == nThreads-1)
+				aR = RIGHE;
+			(threadsAggiorna[pos] = new Slave(daR, aR, false)).start();
 			daR = aR;
 			aR += quotaR;
 		}
@@ -656,6 +671,16 @@ public class Life implements ActionListener{
 		pulsar.setEnabled(true);
 		glider.setEnabled(true);
 		LWSS.setEnabled(true);
+	}
+	
+	/**
+	 * Informa di input invalido nel campo relativo al numero di thread da usare.
+	 */
+	private void noThread(){
+		JOptionPane.showMessageDialog(null,"Inserisci almeno 1 come numero di "
+				+ "thread da usare per il passaggio tra generazioni.");
+		tthreads.setEditable(true);
+		bcambia.setText("Applica");
 	}
 
 	/**
