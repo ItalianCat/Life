@@ -633,6 +633,8 @@ public class Life implements ActionListener{
 
 		daR = 0;
 		aR = quotaR;
+		if(nThreads<=0)
+			nThreads=1;
 		Slave[] threadsCheck = new Slave[nThreads];
 		for(int pos = 0; pos < nThreads; pos++){
 			if (pos == nThreads-1)
